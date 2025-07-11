@@ -17,7 +17,7 @@ end_range = datetime.now().strftime("%Y-%m-%dT%H:%M:%S%z")
 output_dir = os.path.join(os.getcwd(),'local_data/api_content')
 
 endpoints = [
-    #{"name": "list", "client": "campaigns", "req_campaign": False},
+    {"name": "list", "client": "campaigns", "req_campaign": False},
     {"name": "get_email_activity_for_campaign", "client": "reports", "req_campaign": True}
 ]
 

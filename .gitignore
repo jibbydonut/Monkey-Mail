@@ -1,4 +1,5 @@
-local_data\api_content\*
+local_data/api_content/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
