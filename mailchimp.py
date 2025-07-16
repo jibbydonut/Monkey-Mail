@@ -11,6 +11,7 @@ from helper import setup_logger
 import time
 from datetime import datetime
 import json
+import boto3
 
 setup_logger()
 load_dotenv()
@@ -35,7 +36,14 @@ def extract_monkeymail_data(monkey_api, endpoints, start_range, end_range, outpu
             for endpoint in endpoints:
                 name = endpoint["client"] + "_" + endpoint["name"]
                 requires_campaign = endpoint.get("req_campaign",False)
-                output_path = os.path.join(output_dir, f"{runtime}_{name}.json")
+
+                #create subfolder
+                output_subdir = os.path.join(output_dir, name)
+                os.makedirs(output_subdir, exist_ok=True)
+
+                output_path = os.path.join(output_subdir,f"{runtime}_{name}.json")
+
+                
 
                 # dynamic method calls
                 target_client = getattr(client, endpoint["client"])
@@ -72,16 +80,37 @@ def extract_monkeymail_data(monkey_api, endpoints, start_range, end_range, outpu
     return results
 
 
-# monkey_api = os.getenv("MAILCHIMP_API_KEY")
+# aws_access = os.getenv('ACCESS_KEY')
+# aws_secret = os.getenv('SECRET_ACCESS_KEY')
+# bucket_name = os.getenv("AWS_BUCKET_NAME")
+# prefix = 'monkey_mail_python'
 
-# start_range="2025-05-01T00:00:00+00:00" #ISO8601 Format
-# end_range = datetime.now().strftime("%Y-%m-%dT%H:%M:%S%z")
 
-# output_dir = os.path.join(os.getcwd(),'local_data/api_content')
+# def list_s3_objects(aws_access,aws_secret,bucket_name,prefix):
 
-# endpoints = [
-#     #{"name": "list", "client": "campaigns", "req_campaign": False},
-#     {"name": "get_email_activity_for_campaign", "client": "reports", "req_campaign": True}
-# ]
+#     # Set s3 client
+#     s3_client = boto3.client(
+#         service_name='s3',
+#         aws_access_key_id=aws_access,
+#         aws_secret_access_key=aws_secret
+#     )
 
-# extract_monkeymail_data(monkey_api, endpoints, start_range, end_range, output_dir)
+#     paginator = s3_client.get_paginator('list_objects_v2')
+#     keys = []
+
+#     # Iterate through files
+#     for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
+#         for obj in page.get('Contents', []):
+#             keys.append(obj['Key'])
+#     return keys
+            
+# def filter_json_keys(s3_keys):
+#     # Filter the list to only include .json files
+#     return [key for key in s3_keys if key.endswith('.json')]
+
+# filter_json_keys(list_s3_objects(aws_access,aws_secret,bucket_name))
+
+
+
+
+

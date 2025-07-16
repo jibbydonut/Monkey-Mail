@@ -1,3 +1,4 @@
 requests
 mailchimp_marketing
 python-dotenv
+boto3
