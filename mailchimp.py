@@ -80,35 +80,51 @@ def extract_monkeymail_data(monkey_api, endpoints, start_range, end_range, outpu
     return results
 
 
-# aws_access = os.getenv('ACCESS_KEY')
-# aws_secret = os.getenv('SECRET_ACCESS_KEY')
-# bucket_name = os.getenv("AWS_BUCKET_NAME")
-# prefix = 'monkey_mail_python'
+aws_access = os.getenv('ACCESS_KEY')
+aws_secret = os.getenv('SECRET_ACCESS_KEY')
+bucket_name = os.getenv("AWS_BUCKET_NAME")
+prefix = 'monkey_mail_python'
 
 
-# def list_s3_objects(aws_access,aws_secret,bucket_name,prefix):
+def list_s3_objects(aws_access,aws_secret,bucket_name,prefix):
 
-#     # Set s3 client
-#     s3_client = boto3.client(
-#         service_name='s3',
-#         aws_access_key_id=aws_access,
-#         aws_secret_access_key=aws_secret
-#     )
+    # Set s3 client
+    s3_client = boto3.client(
+        service_name='s3',
+        aws_access_key_id=aws_access,
+        aws_secret_access_key=aws_secret
+    )
 
-#     paginator = s3_client.get_paginator('list_objects_v2')
-#     keys = []
+    paginator = s3_client.get_paginator('list_objects_v2')
+    keys = []
 
-#     # Iterate through files
-#     for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
-#         for obj in page.get('Contents', []):
-#             keys.append(obj['Key'])
-#     return keys
+    # Iterate through files
+    for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
+        for obj in page.get('Contents', []):
+            keys.append(obj['Key'])
+    return keys
             
-# def filter_json_keys(s3_keys):
-#     # Filter the list to only include .json files
-#     return [key for key in s3_keys if key.endswith('.json')]
+def filter_json_keys(s3_keys):
+    # Filter the list to only include .json files
+    return [key for key in s3_keys if key.endswith('.json')]
 
-# filter_json_keys(list_s3_objects(aws_access,aws_secret,bucket_name))
+filter_json_keys(list_s3_objects(aws_access,aws_secret,bucket_name))
+
+def list_local_files(local_dir):
+
+    # List local json files
+    file_paths = []
+
+    for root, _, files in os.walk(local_dir):
+        for name in files:
+            full_path = os.path.join(root, name)
+            rel_path = os.path.relpath(full_path, local_dir).replace("\\","/")
+            file_paths.append(rel_path)
+
+    return file_paths
+
+local_dir = "local_data/api_content"
+print(list_local_files(local_dir))
 
 
 
