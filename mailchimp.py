@@ -80,10 +80,10 @@ def extract_monkeymail_data(monkey_api, endpoints, start_range, end_range, outpu
     return results
 
 
-aws_access = os.getenv('ACCESS_KEY')
-aws_secret = os.getenv('SECRET_ACCESS_KEY')
-bucket_name = os.getenv("AWS_BUCKET_NAME")
-prefix = 'monkey_mail_python'
+# aws_access = os.getenv('ACCESS_KEY')
+# aws_secret = os.getenv('SECRET_ACCESS_KEY')
+# bucket_name = os.getenv("AWS_BUCKET_NAME")
+# prefix = 'monkey_mail_python'
 
 
 def list_s3_objects(aws_access,aws_secret,bucket_name,prefix):
@@ -102,19 +102,19 @@ def list_s3_objects(aws_access,aws_secret,bucket_name,prefix):
     for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
         for obj in page.get('Contents', []):
             keys.append(obj['Key'])
+    
     return keys
             
 def filter_json_keys(s3_keys):
     # Filter the list to only include .json files
     return [key for key in s3_keys if key.endswith('.json')]
 
-filter_json_keys(list_s3_objects(aws_access,aws_secret,bucket_name))
-
 def list_local_files(local_dir):
 
     # List local json files
     file_paths = []
 
+    # Walk through all files/subdir in local_dir
     for root, _, files in os.walk(local_dir):
         for name in files:
             full_path = os.path.join(root, name)
@@ -123,10 +123,33 @@ def list_local_files(local_dir):
 
     return file_paths
 
-local_dir = "local_data/api_content"
-print(list_local_files(local_dir))
+def list_missing_files(local_files,s3_files):
+    # Get just filename(drop subdir)
+    s3_filenames = {os.path.basename(path) for path in s3_files}
 
+    #Get missing files in S3
+    missing_local_paths = [
+    path for path in local_files
+    if os.path.basename(path) not in s3_filenames
+    ]
+    logging.info(f"Missing Files: {missing_local_paths}")
+    return missing_local_paths
 
-
+def upload_missing_to_s3(aws_access,aws_secret,missing_files,local_dir,bucket_name):
+    # Set s3 client
+    s3_client = boto3.client(
+        service_name='s3',
+        aws_access_key_id=aws_access,
+        aws_secret_access_key=aws_secret
+    )
+    count = 0
+    # Pass missing list and upload files
+    for file in missing_files:
+        missing_path = os.path.join(local_dir,file)
+        s3_subdir = "monkey_mail_python/"+ file
+        s3_client.upload_file(missing_path,bucket_name,s3_subdir)
+        count += 1
+    
+    logging.info(f"Uploaded {count} files")
 
 
